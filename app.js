@@ -2,17 +2,63 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
-
+var logger = require('morgan');
+var cookieParser = require('cookie-parser');
+var expressSession = require('express-session');
+var hash = require('bcrypt-nodejs');
+var path = require('path');
+var passport = require('passport');
+var localStrategy = require('passport-local' ).Strategy;
 
 app.use('/scripts', express.static(__dirname + '/node_modules/'));
 app.use(express.static(__dirname+'/client'));
 app.use(bodyParser.json());
 
+var routes = require('./routes/api.js');
+
 Genre = require('./models/genre');
 Book = require('./models/book');
+User = require('./models/user.js');
+
+Genre = require('./models/genre');
+Book = require('./models/book');
+
 //З'єднання з mongoose
 mongoose.connect('mongodb://localhost/book_manager');
 var db = mongoose.connection;
+
+
+app.use(express.static(path.join(__dirname, '../client')));
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(require('express-session')({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// конфігурування passport.js
+passport.use(new localStrategy(User.authenticate()));
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// роути
+app.use('/user/', routes);
+
+app.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, '../client', 'index.html'));
+});
+
+
+
+
+
+module.exports = app;
 
 
 app.get('/', function (req, res) {
