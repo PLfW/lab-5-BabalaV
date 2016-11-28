@@ -10,6 +10,7 @@ var path = require('path');
 var passport = require('passport');
 var localStrategy = require('passport-local' ).Strategy;
 
+
 app.use('/scripts', express.static(__dirname + '/node_modules/'));
 app.use(express.static(__dirname+'/client'));
 app.use(bodyParser.json());
@@ -24,9 +25,17 @@ Genre = require('./models/genre');
 Book = require('./models/book');
 
 //З'єднання з mongoose
-mongoose.connect('mongodb://localhost/book_manager');
-var db = mongoose.connection;
-
+var uristring =
+    process.env.MONGOLAB_URI ||
+    process.env.MONGOHQ_URL ||
+    'mongodb://vaalel:hatake1996@ds111188.mlab.com:11188/book_manager';
+  mongoose.connect(uristring, function (err, res) {
+      if (err) {
+      console.log ('ERROR connecting to: ' + uristring + '. ' + err);
+      } else {
+      console.log ('Succeeded connected to: ' + uristring);
+      }
+    });
 
 app.use(express.static(path.join(__dirname, '../client')));
 app.use(logger('dev'));
@@ -54,12 +63,7 @@ app.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, '../client', 'index.html'));
 });
 
-
-
-
-
 module.exports = app;
-
 
 app.get('/', function (req, res) {
   res.send('Please use /api/books or /api/genres');
